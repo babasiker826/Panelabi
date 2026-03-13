@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ query_name }} - Sorgu Paneli</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #151522 100%);
+            color: #f0f0f0;
+            min-height: 100vh;
+        }
+
+        .header {
+            background-color: #0d0d0d;
+            padding: 15px 20px;
+            border-bottom: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            color: #ff0000;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+
+        .back-btn {
+            background-color: #ff0000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background-color: #cc0000;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
+        }
+
+        .query-container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .query-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .query-header h1 {
+            color: #ff0000;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+
+        .query-form {
+            background: rgba(10, 10, 20, 0.8);
+            border-radius: 10px;
+            padding: 25px;
+            border: 1px solid #333;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #ddd;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: #222;
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #ff0000;
+            box-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #ff0000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .submit-btn:hover {
+            background-color: #cc0000;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
+        }
+
+        .result-container {
+            background: rgba(10, 10, 20, 0.8);
+            border-radius: 10px;
+            padding: 25px;
+            border: 1px solid #333;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #333;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .result-header h2 {
+            color: #4CAF50;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .action-btn.table-btn {
+            background-color: #27ae60;
+        }
+        
+        .action-btn.table-btn:hover {
+            background-color: #219a52;
+        }
+        
+        .action-btn.json-btn {
+            background-color: #f39c12;
+        }
+        
+        .action-btn.json-btn:hover {
+            background-color: #e67e22;
+        }
+
+        /* Tablo Görünümü */
+        .table-view {
+            background-color: #1a1a2a;
+            border-radius: 5px;
+            overflow-x: auto;
+            border: 1px solid #333;
+            display: none;
+        }
+        
+        .table-view.active {
+            display: block;
+        }
+        
+        .table-view table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        
+        .table-view th {
+            background-color: #ff0000;
+            color: white;
+            padding: 12px;
+            font-size: 13px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            white-space: nowrap;
+        }
+        
+        .table-view td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #333;
+            color: #ddd;
+            font-size: 12px;
+        }
+        
+        .table-view tr:hover td {
+            background-color: rgba(255, 0, 0, 0.1);
+        }
+
+        /* JSON Görünümü */
+        .json-view {
+            background-color: #000;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            color: #0f0;
+            border: 1px solid #333;
+            display: none;
+        }
+        
+        .json-view.active {
+            display: block;
+        }
+
+        /* Bilgi Kartları */
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-card {
+            background: #222;
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 4px solid #ff0000;
+        }
+
+        .info-card .label {
+            color: #aaa;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .info-card .value {
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #ff9900;
+            display: none;
+        }
+
+        .loading i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background-color: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #ff6b6b;
+            display: none;
+        }
+
+        .param-info {
+            background: #222;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+            color: #ff9900;
+            font-size: 13px;
+            border-left: 3px solid #ff0000;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .record-count {
+            background: #ff0000;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-search"></i>
+            <span>Sorgu Paneli</span>
+        </div>
+        <a href="/" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Ana Sayfa
+        </a>
+    </div>
+
+    <div class="query-container">
+        <div class="query-header">
+            <h1>{{ query_name }}</h1>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <div class="param-info" id="paramInfo">
+            <i class="fas fa-info-circle"></i> Parametreler yükleniyor...
+        </div>
+
+        <div class="query-form" id="queryForm">
+            <!-- Form dinamik oluşturulacak -->
+        </div>
+
+        <div class="loading" id="loading">
+            <i class="fas fa-spinner"></i>
+            <p>Sorgu çalıştırılıyor...</p>
+        </div>
+
+        <div class="result-container" id="resultContainer">
+            <div class="result-header">
+                <h2>
+                    <i class="fas fa-check-circle" style="color: #4CAF50;"></i>
+                    Sorgu Sonucu
+                    <span class="record-count" id="recordCount">0 kayıt</span>
+                </h2>
+                <div class="result-actions">
+                    <button class="action-btn table-btn" id="showTableViewBtn">
+                        <i class="fas fa-table"></i> Tablo
+                    </button>
+                    <button class="action-btn json-btn" id="showJsonViewBtn">
+                        <i class="fas fa-code"></i> JSON
+                    </button>
+                    <button class="action-btn" id="copyResultBtn">
+                        <i class="fas fa-copy"></i> Kopyala
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Bilgi Kartları -->
+            <div class="info-cards" id="infoCards"></div>
+            
+            <!-- Tablo Görünümü -->
+            <div class="table-view" id="tableView">
+                <div id="tableContent"></div>
+            </div>
+            
+            <!-- JSON Görünümü -->
+            <div class="json-view" id="jsonView">
+                <div id="jsonContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const queryKey = "{{ query_key }}";
+        let currentJsonData = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadQueryInfo();
+        });
+
+        function loadQueryInfo() {
+            fetch(`/api/get_query_info/${queryKey}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showError(data.error);
+                        return;
+                    }
+
+                    const paramInfo = document.getElementById('paramInfo');
+                    if (data.required_params.length === 0) {
+                        paramInfo.innerHTML = '<i class="fas fa-info-circle"></i> Bu sorgu için ek parametre gerekmiyor. Doğrudan sorgulayabilirsiniz.';
+                    } else {
+                        paramInfo.innerHTML = `<i class="fas fa-info-circle"></i> Gerekli parametreler: ${data.required_params.join(', ')}`;
+                    }
+
+                    createForm(data.required_params);
+                })
+                .catch(error => {
+                    showError('Sorgu bilgileri yüklenirken hata oluştu.');
+                });
+        }
+
+        function createForm(params) {
+            const form = document.getElementById('queryForm');
+            let formHTML = '';
+
+            if (params.length === 0) {
+                formHTML = `
+                    <button type="button" class="submit-btn" onclick="executeQuery()">
+                        <i class="fas fa-search"></i> Sorgula
+                    </button>
+                `;
+            } else {
+                params.forEach(param => {
+                    let label = param;
+                    let placeholder = '';
+                    
+                    if (param === 'plaka') { label = 'Plaka'; placeholder = 'Örn: 34ABC123'; }
+                    else if (param === 'ad' || param === 'adi') { label = 'Ad'; placeholder = 'Ad giriniz'; }
+                    else if (param === 'soyad' || param === 'soyadi') { label = 'Soyad'; placeholder = 'Soyad giriniz'; }
+                    else if (param === 'tc') { label = 'TC Kimlik No'; placeholder = '11 haneli TC No'; }
+                    else if (param === 'gsm') { label = 'Telefon No'; placeholder = '5XXXXXXXXX'; }
+                    else if (param === 'il') { label = 'İl'; placeholder = 'Örn: İstanbul'; }
+                    else if (param === 'isim') { label = 'İsim'; placeholder = 'İsim giriniz'; }
+                    else if (param === 'paparano') { label = 'Papara No'; placeholder = 'Papara numarası'; }
+                    
+                    formHTML += `
+                        <div class="form-group">
+                            <label for="${param}">${label}</label>
+                            <input type="text" id="${param}" name="${param}"
+                                   placeholder="${placeholder || label + ' giriniz...'}" required>
+                        </div>
+                    `;
+                });
+
+                formHTML += `
+                    <button type="button" class="submit-btn" onclick="executeQuery()">
+                        <i class="fas fa-search"></i> Sorgula
+                    </button>
+                `;
+            }
+
+            form.innerHTML = formHTML;
+        }
+
+        function executeQuery() {
+            const params = {};
+            const form = document.getElementById('queryForm');
+            const inputs = form.querySelectorAll('input');
+
+            inputs.forEach(input => {
+                if (input.value.trim()) {
+                    params[input.name] = input.value.trim();
+                }
+            });
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultContainer').style.display = 'none';
+            hideError();
+
+            fetch('/api/execute_query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query_key: queryKey,
+                    params: params
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+
+                if (data.success) {
+                    try {
+                        currentJsonData = JSON.parse(data.response);
+                    } catch(e) {
+                        currentJsonData = { "metin": data.response };
+                    }
+                    
+                    renderAllData(currentJsonData);
+                    document.getElementById('jsonContent').textContent = JSON.stringify(currentJsonData, null, 2);
+                    
+                    // Varsayılan tablo görünümü
+                    document.getElementById('tableView').classList.add('active');
+                    document.getElementById('jsonView').classList.remove('active');
+                    
+                    document.getElementById('resultContainer').style.display = 'block';
+                } else {
+                    showError('Sorgu hatası: ' + data.error);
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                showError('Sorgu çalıştırılırken hata oluştu.');
+            });
+        }
+
+        function findDataArray(obj) {
+            if (!obj || typeof obj !== 'object') return null;
+            
+            // 1. Direkt array ise
+            if (Array.isArray(obj)) return obj;
+            
+            // 2. sonuclar array'i (Papara örneği)
+            if (obj.sonuclar && Array.isArray(obj.sonuclar)) return obj.sonuclar;
+            
+            // 3. data.data (TC örneği)
+            if (obj.data && obj.data.data && Array.isArray(obj.data.data)) return obj.data.data;
+            
+            // 4. data array (direkt)
+            if (obj.data && Array.isArray(obj.data)) return obj.data;
+            
+            // 5. results array
+            if (obj.results && Array.isArray(obj.results)) return obj.results;
+            
+            // 6. items array
+            if (obj.items && Array.isArray(obj.items)) return obj.items;
+            
+            // 7. liste array
+            if (obj.liste && Array.isArray(obj.liste)) return obj.liste;
+            
+            // 8. kayitlar array
+            if (obj.kayitlar && Array.isArray(obj.kayitlar)) return obj.kayitlar;
+            
+            // 9. Herhangi bir key'in altında array var mı kontrol et
+            for (let key in obj) {
+                if (Array.isArray(obj[key]) && obj[key].length > 0) {
+                    // Array içindeki ilk eleman object mi kontrol et
+                    if (obj[key].length > 0 && typeof obj[key][0] === 'object') {
+                        return obj[key];
+                    }
+                }
+            }
+            
+            return null;
+        }
+
+        function extractMetaInfo(obj) {
+            const meta = {};
+            
+            // success bilgisi
+            if (obj.success !== undefined) {
+                meta.success = obj.success;
+            }
+            
+            // sonuc_sayisi / count
+            if (obj.sonuc_sayisi !== undefined) {
+                meta.count = obj.sonuc_sayisi;
+            } else if (obj.count !== undefined) {
+                meta.count = obj.count;
+            }
+            
+            // yapimci / developer
+            if (obj.yapimci) {
+                meta.yapimci = obj.yapimci;
+            } else if (obj.developer) {
+                meta.developer = obj.developer;
+            }
+            
+            // telegram_kanal
+            if (obj.telegram_kanal) {
+                meta.telegram = obj.telegram_kanal;
+            }
+            
+            // not / mesaj
+            if (obj.not) {
+                meta.not = obj.not;
+            }
+            
+            // sorgu bilgisi
+            if (obj.sorgu && typeof obj.sorgu === 'object') {
+                meta.sorgu = obj.sorgu;
+            }
+            
+            return meta;
+        }
+
+        function renderAllData(data) {
+            const tableContent = document.getElementById('tableContent');
+            const infoCards = document.getElementById('infoCards');
+            const recordCount = document.getElementById('recordCount');
+            
+            if (!data || Object.keys(data).length === 0) {
+                tableContent.innerHTML = '<p style="color: #aaa; padding: 20px; text-align: center;">Veri bulunamadı</p>';
+                infoCards.innerHTML = '';
+                recordCount.textContent = '0 kayıt';
+                return;
+            }
+
+            // Meta bilgileri topla
+            const meta = extractMetaInfo(data);
+            
+            // Data array'ini bul
+            let dataArray = findDataArray(data);
+            
+            // Bilgi kartlarını oluştur
+            let infoHtml = '';
+            
+            if (meta.success !== undefined) {
+                infoHtml += `
+                    <div class="info-card">
+                        <div class="label">Durum</div>
+                        <div class="value" style="color: ${meta.success === 'true' || meta.success === true ? '#4CAF50' : '#e74c3c'}">
+                            ${meta.success === 'true' || meta.success === true ? 'Başarılı' : 'Başarısız'}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (meta.count !== undefined) {
+                infoHtml += `
+                    <div class="info-card">
+                        <div class="label">Toplam Kayıt</div>
+                        <div class="value">${meta.count}</div>
+                    </div>
+                `;
+            }
+            
+            if (meta.yapimci) {
+                infoHtml += `
+                    <div class="info-card">
+                        <div class="label">Yapımcı</div>
+                        <div class="value">${meta.yapimci}</div>
+                    </div>
+                `;
+            }
+            
+            if (meta.developer) {
+                infoHtml += `
+                    <div class="info-card">
+                        <div class="label">Geliştirici</div>
+                        <div class="value">${meta.developer}</div>
+                    </div>
+                `;
+            }
+            
+            if (meta.telegram) {
+                infoHtml += `
+                    <div class="info-card">
+                        <div class="label">Telegram</div>
+                        <div class="value">${meta.telegram}</div>
+                    </div>
+                `;
+            }
+            
+            if (meta.not) {
+                infoHtml += `
+                    <div class="info-card">
+                        <div class="label">Not</div>
+                        <div class="value">${meta.not}</div>
+                    </div>
+                `;
+            }
+            
+            infoCards.innerHTML = infoHtml;
+
+            // Kayıt sayısını güncelle
+            if (dataArray) {
+                recordCount.textContent = `${dataArray.length} kayıt`;
+            } else if (meta.count) {
+                recordCount.textContent = `${meta.count} kayıt`;
+            } else {
+                recordCount.textContent = '0 kayıt';
+            }
+
+            // Tabloyu oluştur
+            if (dataArray && dataArray.length > 0) {
+                // Tüm kolonları topla
+                const columns = new Set();
+                dataArray.forEach(item => {
+                    if (item && typeof item === 'object') {
+                        Object.keys(item).forEach(key => columns.add(key));
+                    }
+                });
+                
+                const columnList = Array.from(columns);
+                
+                let tableHtml = '<table><thead><tr>';
+                columnList.forEach(col => {
+                    // Kolon adlarını düzenle
+                    let colName = col;
+                    if (col === 'ad_soyad') colName = 'Ad Soyad';
+                    else if (col === 'adSoyad') colName = 'Ad Soyad';
+                    else if (col === 'plaka') colName = 'Plaka';
+                    else if (col === 'numara') colName = 'Numara';
+                    else if (col === 'id') colName = 'ID';
+                    else if (col === 'TC') colName = 'TC No';
+                    else if (col === 'ADI') colName = 'Ad';
+                    else if (col === 'SOYADI') colName = 'Soyad';
+                    else if (col === 'DOGUMTARIHI') colName = 'Doğum Tarihi';
+                    else if (col === 'NUFUSIL') colName = 'Nüfus İl';
+                    else if (col === 'NUFUSILCE') colName = 'Nüfus İlçe';
+                    else if (col === 'ANNEADI') colName = 'Anne Adı';
+                    else if (col === 'ANNETC') colName = 'Anne TC';
+                    else if (col === 'BABAADI') colName = 'Baba Adı';
+                    else if (col === 'BABATC') colName = 'Baba TC';
+                    else if (col === 'UYRUK') colName = 'Uyruk';
+                    
+                    tableHtml += `<th>${colName}</th>`;
+                });
+                tableHtml += '</tr></thead><tbody>';
+                
+                dataArray.forEach(item => {
+                    tableHtml += '<tr>';
+                    columnList.forEach(col => {
+                        let value = item[col];
+                        if (value === null || value === undefined) {
+                            value = '-';
+                        } else if (typeof value === 'object') {
+                            value = JSON.stringify(value);
+                        }
+                        tableHtml += `<td>${value}</td>`;
+                    });
+                    tableHtml += '</tr>';
+                });
+                
+                tableHtml += '</tbody></table>';
+                tableContent.innerHTML = tableHtml;
+            } else {
+                // Sorgu bilgisi varsa onu göster
+                if (meta.sorgu) {
+                    let sorguHtml = '<h3 style="color: #ff0000; margin-bottom: 10px;">Sorgu Bilgileri</h3><table><tbody>';
+                    for (let key in meta.sorgu) {
+                        let value = meta.sorgu[key];
+                        if (value === null || value === undefined) value = '-';
+                        sorguHtml += `<tr><th style="width: 200px; background-color: #222;">${key}</th><td>${value}</td></tr>`;
+                    }
+                    sorguHtml += '</tbody></table>';
+                    tableContent.innerHTML = sorguHtml;
+                } else {
+                    tableContent.innerHTML = '<p style="color: #aaa; padding: 20px; text-align: center;">Tablo görünümü için veri bulunamadı. JSON görünümünü deneyin.</p>';
+                }
+            }
+        }
+
+        // Tablo görünümü butonu
+        document.getElementById('showTableViewBtn').addEventListener('click', function() {
+            document.getElementById('tableView').classList.add('active');
+            document.getElementById('jsonView').classList.remove('active');
+        });
+
+        // JSON görünümü butonu
+        document.getElementById('showJsonViewBtn').addEventListener('click', function() {
+            document.getElementById('jsonView').classList.add('active');
+            document.getElementById('tableView').classList.remove('active');
+        });
+
+        // Kopyala butonu
+        document.getElementById('copyResultBtn').addEventListener('click', function() {
+            const textToCopy = document.getElementById('jsonContent').textContent;
+            
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-check"></i> Kopyalandı!';
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                    }, 2000);
+                })
+                .catch(err => {
+                    showError('Kopyalama başarısız.');
+                });
+        });
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
